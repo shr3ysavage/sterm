@@ -203,12 +203,13 @@ void help() {
 }
 
 int built_in_exec(char **parsed) {
-	int built_in = 4;
+	int built_in = 5;
 	char *built_in_commands[built_in];
 	built_in_commands[0] = "exit";
 	built_in_commands[1] = "quit";
 	built_in_commands[2] = "hello";
 	built_in_commands[3] = "help";
+	built_in_commands[4] = "cd";
 
 	int arg = 0;
 	for(int i = 0; i < built_in; ++i) {
@@ -230,6 +231,9 @@ int built_in_exec(char **parsed) {
 			return 1;
 		case 4:
 			help();
+			return 1;
+		case 5:
+			chdir(parsed[1]);
 			return 1;
 		default:
 			break;
