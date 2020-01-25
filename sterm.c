@@ -16,7 +16,7 @@
 // Greet user
 void greet();
 
-// Display prompt and take input
+// Display prompt. Await and take input
 int prompt(char *str);
 
 // Execute system commands
@@ -29,7 +29,7 @@ void system_exec_piped(char **parsed, char **parsed_pipe);
 void help();
 
 // Execute built-in commands
-void built_in_exec(char **parsed);
+int built_in_exec(char **parsed);
 
 // Parse pipes
 int parse_pipe(char *str, char **strpiped);
@@ -45,12 +45,12 @@ int main() {
 	char *parsed_args_piped[MAXLIST];
 	int exec_flag = 0;
 
-	while(1) {
-		// Display prompt
-		greet();
+	// Greet user
+	greet();
 
-		// Take input
-		if(take_input(input_string))
+	while(1) {
+		// Display prompt and take input
+		if(prompt(input_string))
 			continue;
 		// exec_flag = 0 -> no command; 1 -> simple command; 2 -> piped commands
 		exec_flag = process_string(input_string, parsed_args, parsed_args_piped);
@@ -90,7 +90,7 @@ int prompt(char *str) {
 	getcwd(pwd, sizeof(pwd));
 
 	// Show username and present working directory, then await command from user
-	printf("%s [%s] ", username, pwd);
+	printf("%s [%s]", username, pwd);
 	command = readline(": ");
 
 	// If length of command is non-zero
@@ -202,14 +202,15 @@ void help() {
 	puts("Happy hacking\n");
 }
 
-void built_in_exec(char **parsed) {
-	int built_in = 3;
+int built_in_exec(char **parsed) {
+	int built_in = 4;
 	char *built_in_commands[built_in];
 	built_in_commands[0] = "exit";
 	built_in_commands[1] = "quit";
 	built_in_commands[2] = "hello";
+	built_in_commands[3] = "help";
 
-	int arg = -1;
+	int arg = 0;
 	for(int i = 0; i < built_in; ++i) {
 		if(strcmp(parsed[0], built_in_commands[i]) == 0) {
 			arg = i + 1;
@@ -218,15 +219,18 @@ void built_in_exec(char **parsed) {
 	}
 
 	switch(arg) {
-		case 0:
-			puts("Bye\n");
-			break;
 		case 1:
 			puts("Bye\n");
-			break;
+			exit(0);
 		case 2:
+			puts("Bye\n");
+			exit(0);
+		case 3:
 			puts("Hello\n");
-			break;
+			return 1;
+		case 4:
+			help();
+			return 1;
 		default:
 			break;
 	}
@@ -236,5 +240,44 @@ int parse_pipe(char *str, char **strpiped) {
 	// Seperate commands
 	for(int i = 0; i < 2; ++i) {
 		strpiped[i] = strsep(&str, "|");
+		if(strpiped[i] == NULL)
+			break;
 	}
+
+	// Return values: 0 -> pipe not found; 1 -> pipe found
+	if(strpiped[1] == NULL)
+		return 0;
+
+	return 1;
+}
+
+void parse_space(char *str, char **parsed) {
+	for(int i = 0; i < MAXLIST; ++i) {
+		parsed[i] = strsep(&str, " ");
+
+		if(parsed[i] == NULL)
+			break;
+		if(strlen(parsed[i]) == 0)
+			--i;
+	}
+}
+
+int process_string(char *str, char **parsed, char **parsed_pipe) {
+	char *strpiped[2];
+	int is_piped;
+
+	// See if pipes exist, and store piped commands in strpiped
+	is_piped = parse_pipe(str, strpiped);
+
+	if(is_piped) {
+		parse_space(strpiped[0], parsed);
+		parse_space(strpiped[1], parsed_pipe);
+	} else {
+		parse_space(str, parsed);
+	}
+
+	if(built_in_exec(parsed))
+		return 0;
+
+	return 1 + is_piped;
 }
