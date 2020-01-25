@@ -205,4 +205,36 @@ void help() {
 void built_in_exec(char **parsed) {
 	int built_in = 3;
 	char *built_in_commands[built_in];
+	built_in_commands[0] = "exit";
+	built_in_commands[1] = "quit";
+	built_in_commands[2] = "hello";
+
+	int arg = -1;
+	for(int i = 0; i < built_in; ++i) {
+		if(strcmp(parsed[0], built_in_commands[i]) == 0) {
+			arg = i + 1;
+			break;
+		}
+	}
+
+	switch(arg) {
+		case 0:
+			puts("Bye\n");
+			break;
+		case 1:
+			puts("Bye\n");
+			break;
+		case 2:
+			puts("Hello\n");
+			break;
+		default:
+			break;
+	}
+}
+
+int parse_pipe(char *str, char **strpiped) {
+	// Seperate commands
+	for(int i = 0; i < 2; ++i) {
+		strpiped[i] = strsep(&str, "|");
+	}
 }
