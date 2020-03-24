@@ -1,2 +1,2 @@
 # sterm
-A terminal for Linux
+A shell for Linux
